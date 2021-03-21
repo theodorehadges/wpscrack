@@ -10,8 +10,8 @@ Minor improvements: Michael Löffler
 
 Dependencies
 ------------
-* PyCrypto
-* Scapy (2.2.0) (does not come with Backtrack)
+* pycryptodome
+* scapy (2.2.0) (does not come with Backtrack)
 
 Usage
 -----

